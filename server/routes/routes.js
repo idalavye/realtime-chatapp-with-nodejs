@@ -62,10 +62,15 @@ router.post("/createRoom", async (req, res, next) => {
         if (!rooms[0]) {
           return room.save();
         } else {
-          return Room.findById(rooms[0]._id).then(room => {
-            room.users.push(user);
-            return room.save();
-          });
+          return Room.findById(rooms[0]._id)
+            .populate("users")
+            .then(room => {
+              room.users.push(user);
+              io.getIO()
+                .to(room._id)
+                .emit("updateUser", room.users);
+              return room.save();
+            });
         }
       })
       .then(room => {
