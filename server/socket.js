@@ -1,6 +1,8 @@
 let io;
 let socketWithRoom;
 
+const Message 
+
 module.exports = {
   init: httpServer => {
     io = require("socket.io")(httpServer);
@@ -12,7 +14,7 @@ module.exports = {
         socket.join(params.room);
         socketWithRoom = socket;
 
-        
+
       });
     });
   },
