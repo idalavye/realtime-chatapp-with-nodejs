@@ -6,23 +6,62 @@
   <title>Join | ChatApp</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <link rel="stylesheet" href="/css/styles.css">
+ 
 </head>
 
 <body class="centered-form">
   <div class="centered-form__form">
-    <form action="/createRoom" method="POST">
+    <form method="POST" action="/createRoom">
       <div class="form-field">
         <h3>Join a Chat<h3>
       </div>
       <div class="form-field">
         <label>Room name</label>
-        <input type="text" name="roomName"/>
+        <input type="text" name="roomName" id="roomName" value=""/>
       </div>
+      <div>
+          <input type="checkbox" name="allchat" value="allchat" id="allchatcheck"> <span for="allchatcheck">Join All Chat </span><br>
+        </div>
       <div class="form-field">
         <button>Join</button>
       </div>
+     
     </form>
   </div>
+
+  <script src="/js/libs/jquery-3.1.0.min.js"></script>
+  <script>
+      jQuery("#allchatcheck").change(function() {
+    if (this.checked) {
+      jQuery("#roomName").prop("disabled", true);
+      jQuery("#roomName").prop("value", "allchat");
+
+      jQuery("#roomName").val("allchat");
+
+    }else{
+      jQuery("#roomName").prop("disabled", false);
+    }
+
+    // jQuery("#createRoom").on("submit", function(e) {
+    //  e.preventDefault();
+
+
+    // $.ajax({
+    //   url: "createRoom",
+    //   method: "POST",
+    //   contentType: "application/x-www-form-urlencoded",
+    //   data: {
+    //     roomName: jQuery("#roomName").val()
+    //   },
+    //   success:function(){
+    //     window.location.href = 'chat.html';
+    //   }
+    // });
+// });
+
+  });
+    </script>
+
 </body>
 
 </html>

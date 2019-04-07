@@ -4,11 +4,29 @@ let roomId;
 
 window.onload = function() {
   fetchMessages();
+  fetchUsers();
 };
 
 socket.on("connect", function() {
   console.log("Server connect");
 });
+
+function fetchUsers() {
+  $.ajax({
+    url: "activeusers",
+    method: "GET",
+    success: function(data, textStatus, jQxhr) {
+      console.log(users);
+      var ol = jQuery("<ol></ol>");
+
+      data.forEach(function(user) {
+        ol.append(jQuery("<li></li>").text(user.username));
+      });
+
+      jQuery("#users").html(ol);
+    }
+  });
+}
 
 function fetchMessages() {
   $.ajax({

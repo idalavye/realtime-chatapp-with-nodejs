@@ -4,10 +4,6 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const session = require("express-session");
 
-const { generateMessage, generateLocationMessage } = require("./utils/message");
-const { isRealString } = require("./utils/validation");
-const { Users } = require("./utils/users");
-
 const routes = require("./routes/routes");
 
 const publicPath = path.join(__dirname, "../public");

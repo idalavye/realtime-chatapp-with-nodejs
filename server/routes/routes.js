@@ -46,14 +46,30 @@ router.post("/login", (req, res, next) => {
   });
 });
 
-router.post("/createRoom", (req, res, next) => {
-  const room = new Room({ roomName: req.body.roomName });
+router.post("/createRoom", async (req, res, next) => {
+  let roomNameTmp;
+  if (!req.body.roomName) {
+    roomNameTmp = "allchat";
+  } else {
+    roomNameTmp = req.body.roomName;
+  }
 
-  Room.find({ roomName: req.body.roomName }).then(rooms => {
-    if (!rooms[0]) {
-      room.save().then(room => {
+  await Room.find({ roomName: roomNameTmp }).then(rooms => {
+    return User.findById(req.session.user._id)
+      .then(user => {
+        const room = new Room({ roomName: roomNameTmp, users: [user] });
+
+        if (!rooms[0]) {
+          return room.save();
+        } else {
+          return Room.findById(rooms[0]._id).then(room => {
+            room.users.push(user);
+            return room.save();
+          });
+        }
+      })
+      .then(room => {
         req.session.room = room;
-
         return res.sendFile(
           path.join(
             process.mainModule.filename,
@@ -64,13 +80,6 @@ router.post("/createRoom", (req, res, next) => {
           )
         );
       });
-    }
-
-    req.session.room = rooms[0];
-
-    return res.sendFile(
-      path.join(process.mainModule.filename, "..", "..", "public", "chat.html")
-    );
   });
 });
 
@@ -104,6 +113,14 @@ router.get("/messages", (req, res, next) => {
         ];
       }
       res.send(messages);
+    });
+});
+
+router.get("/activeusers", (req, res, next) => {
+  Room.findById(req.session.room._id)
+    .populate("users")
+    .then(room => {
+      res.send(room.users);
     });
 });
 
