@@ -65,7 +65,20 @@ router.post("/createRoom", async (req, res, next) => {
           return Room.findById(rooms[0]._id)
             .populate("users")
             .then(room => {
-              room.users.push(user);
+              const users = rooms.users;
+              console.log(users);
+              if (users) {
+                const newUserList = users.filter(
+                  user =>
+                    user._id.toString() === req.session.user._id.toString()
+                );
+                if (newUserList.length === 0) {
+                  room.users.push(user);
+                }
+              } else {
+                room.users.push(user);
+              }
+
               io.getIO()
                 .to(room._id)
                 .emit("updateUser", room.users);
@@ -89,6 +102,11 @@ router.post("/createRoom", async (req, res, next) => {
 });
 
 router.post("/createmessage", (req, res, next) => {
+  if (!req.session.user) {
+    return res.sendFile(
+      path.join(process.mainModule.filename, "..", "..", "public", "index.html")
+    );
+  }
   const message = new Message({
     message: req.body.message,
     roomId: req.session.room._id,
@@ -113,7 +131,7 @@ router.get("/messages", (req, res, next) => {
           {
             message: "This room crated by you",
             roomId: req.session.room._id,
-            userId: { username: "Admin" }
+            userId: { username: "Admin", _id: req.session.user._id }
           }
         ];
       }
@@ -127,6 +145,16 @@ router.get("/activeusers", (req, res, next) => {
     .then(room => {
       res.send(room.users);
     });
+});
+
+router.use("/", (req, res, next) => {
+  io.getIO().on("disconnected", () => {
+    console.log("Client Disconnected");
+  });
+});
+
+router.post("/disconnecthandler", (req, res, next) => {
+  console.log("Client Disconnect");
 });
 
 module.exports = router;

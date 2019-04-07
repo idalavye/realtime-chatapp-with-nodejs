@@ -1,6 +1,7 @@
 var socket = io();
 
 let roomId;
+let userId;
 
 window.onload = function() {
   fetchMessages();
@@ -35,6 +36,7 @@ function fetchMessages() {
     success: function(data, textStatus, jQxhr) {
       console.log(data);
       roomId = data[0].roomId;
+      userId = data[0].userId;
       console.log(roomId);
       for (const item in data) {
         var formattedTime = moment(new Date()).format("h:mm a");
@@ -48,7 +50,8 @@ function fetchMessages() {
         jQuery("#messages").append(html);
         scrollToBottom();
       }
-      socket.emit("join", { room: roomId }, function(err) {});
+      console.log(userId);
+      socket.emit("join", { room: roomId, user: userId }, function(err) {});
 
       socket.on("newMessage", function(message) {
         console.log(message);
@@ -99,10 +102,6 @@ function scrollToBottom() {
 //   });
 // });
 
-socket.on("disconnect", function() {
-  console.log("Disconnected from server");
-});
-
 socket.on("updateUser", function(users) {
   console.log(users);
   var ol = jQuery("<ol></ol>");
@@ -110,7 +109,6 @@ socket.on("updateUser", function(users) {
   for (const item of users) {
     ol.append(jQuery("<li></li>").text(item.username));
   }
-
 
   jQuery("#users").html(ol);
 });
