@@ -8,13 +8,29 @@ const User = require("../models/user");
 const Room = require("../models/room");
 const Message = require("../models/message");
 
-router.post("/createUser", (req, res, next) => {
-  const user = new User({
+router.post("/createUser", async (req, res, next) => {
+  const user = await User.find({
+    username: req.body.username
+  });
+
+  if (user) {
+    return res.sendFile(
+      path.join(
+        process.mainModule.filename,
+        "..",
+        "..",
+        "public",
+        "username-error.html"
+      )
+    );
+  }
+
+  const newUser = new User({
     username: req.body.username,
     password: req.body.password
   });
 
-  user.save().then(() => {
+  newUser.save().then(() => {
     return res.sendFile(
       path.join(process.mainModule.filename, "..", "..", "public", "index.html")
     );
@@ -54,10 +70,15 @@ router.post("/createRoom", async (req, res, next) => {
     roomNameTmp = req.body.roomName;
   }
 
-  await Room.find({ roomName: roomNameTmp }).then(rooms => {
+  await Room.find({
+    roomName: roomNameTmp
+  }).then(rooms => {
     return User.findById(req.session.user._id)
       .then(user => {
-        const room = new Room({ roomName: roomNameTmp, users: [user] });
+        const room = new Room({
+          roomName: roomNameTmp,
+          users: [user]
+        });
 
         if (!rooms[0]) {
           return room.save();
@@ -70,7 +91,7 @@ router.post("/createRoom", async (req, res, next) => {
               if (users) {
                 const newUserList = users.filter(
                   user =>
-                    user._id.toString() === req.session.user._id.toString()
+                  user._id.toString() === req.session.user._id.toString()
                 );
                 if (newUserList.length === 0) {
                   room.users.push(user);
@@ -114,7 +135,10 @@ router.post("/createmessage", (req, res, next) => {
   });
   return message.save().then(messageResult => {
     User.findById(messageResult.userId).then(user => {
-      const messageTmp = { message: messageResult, username: user.username };
+      const messageTmp = {
+        message: messageResult,
+        username: user.username
+      };
       io.getIO()
         .to(req.session.room._id)
         .emit("newMessage", messageTmp);
@@ -123,17 +147,20 @@ router.post("/createmessage", (req, res, next) => {
 });
 
 router.get("/messages", (req, res, next) => {
-  Message.find({ roomId: req.session.room._id })
+  Message.find({
+      roomId: req.session.room._id
+    })
     .populate("userId")
     .then(messages => {
       if (messages.length === 0) {
-        messages = [
-          {
-            message: "This room crated by you",
-            roomId: req.session.room._id,
-            userId: { username: "Admin", _id: req.session.user._id }
+        messages = [{
+          message: "This room crated by you",
+          roomId: req.session.room._id,
+          userId: {
+            username: "Admin",
+            _id: req.session.user._id
           }
-        ];
+        }];
       }
       res.send(messages);
     });
